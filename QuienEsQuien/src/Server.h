@@ -12,12 +12,9 @@
 class Server
 {
 public:
-    Server(const char * s, const char * p): socket(s, p, 0)
-    {
+    Server(const char * s, const char * p);
 
-    };
-
-    //Thread principal del servidor recive mensajes en el socket y
+    //Thread principal del servidor: recive mensajes en el socket y
     //lo distribuye a los clientes. Mantiene actualizada la lista de clientes
     void do_messages();
 

@@ -98,7 +98,9 @@ public:
      *
      *    @return 0 en caso de éxito o -1 si error
      */
-    int send(Serializable& obj, const Socket& sock);
+    int send(Serializable& obj);    //, const Socket& sock
+
+    int accept();
 
     friend std::ostream& operator<<(std::ostream& os, const Socket& dt);
 
@@ -106,14 +108,7 @@ public:
 
 protected:
 
-    /**
-     *  Descriptor del socket
-     */
     int sd;
-
-    /**
-     *  Representación binaria del extremo, usada por servidor y cliente
-     */
     struct sockaddr sa;
     socklen_t       sa_len;
 };

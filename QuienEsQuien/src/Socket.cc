@@ -25,7 +25,7 @@ Socket::Socket(const char *address, const char *port, const int type) : sd(-1)
 
     if(type == 0) //Si esta en modo servidor abre las conexiones
     {
-        int sd = socket(sockaddr->ai_family, sockaddr->ai_socktype, 0);
+        sd = socket(sockaddr->ai_family, sockaddr->ai_socktype, 0);
         if (sd == -1)
         {
             std::cerr << "Error: socket\n";
@@ -48,29 +48,38 @@ Socket::Socket(const char *address, const char *port, const int type) : sd(-1)
     }
     else  //Si esta en en modo cliente se trata de conectar
     {
-        int sd = socket(sockaddr->ai_family, sockaddr->ai_socktype, 0);
+        sd = socket(sockaddr->ai_family, sockaddr->ai_socktype, 0);
         if (sd == -1)
         {
             std::cout << "Error: socket\n";
             return;
         }
 
-        if (connect(sd, sockaddr->ai_addr, sockaddr->ai_addrlen) == -1)
+        int returnCode = connect(sd, sockaddr->ai_addr, sockaddr->ai_addrlen);
+        if (returnCode == -1)
         {
             std::cout << "Error: connect\n";
             return;
         }
     }
+    
+    //freeaddrinfo(sockaddr);
 
-    //Guardamos la información de la direccion
+    //Guardamos la información de la dirección
     sa = *sockaddr->ai_addr;
     sa_len = sockaddr->ai_addrlen;
+}
 
-    freeaddrinfo(sockaddr);
+Socket::Socket(struct sockaddr * _sa, socklen_t _sa_len):sd(-1), sa(*_sa), sa_len(_sa_len)
+{
+    sd = socket(AF_INET, SOCK_STREAM, 0);
 }
 
 int Socket::recv(Serializable &obj, Socket * &sock)
 {
+    // struct sockaddr sa;
+    // socklen_t sa_len = sizeof(struct sockaddr);
+
     char buffer[MAX_MESSAGE_SIZE];
 
     ssize_t bytes = ::recv(sd, buffer, MAX_MESSAGE_SIZE, 0);
@@ -80,18 +89,48 @@ int Socket::recv(Serializable &obj, Socket * &sock)
         return -1;
     }
 
+    if ( sock != 0 )
+    {
+        sock = new Socket(&sa, sa_len);
+    }
+
     obj.from_bin(buffer);
 
     return 0;
 }
 
-int Socket::send(Serializable& obj, const Socket& sock)
+int Socket::send(Serializable& obj) //, const Socket& sock
 {
     //Serializar el objeto
     obj.to_bin();   //Llamamos al metodo de serializacion del objeto a mandar
     //Enviar el objeto binario a sock usando el socket sd
-    int envioMensaje = ::send(sock.sd, obj.data(), obj.size(), 0);
-	return 0;
+    int envioMensaje = ::send(sd, obj.data(), obj.size(), 0);
+
+    if(envioMensaje < 0 )
+        std::cerr << "Error: send " << strerror(errno) << "\n";
+
+	return envioMensaje;
+}
+
+int Socket::accept()
+{
+    char host[NI_MAXHOST];
+	char serv[NI_MAXSERV];
+    struct sockaddr cliente;
+	socklen_t clienteLen = sizeof(struct sockaddr);
+
+	int client_sd = ::accept(sd, &cliente, &clienteLen);
+    if (client_sd == -1) {
+        std::cerr << "Error: accept " << strerror(errno) << "\n";
+        return -1;
+    }
+
+    getnameinfo(&cliente, clienteLen, host, NI_MAXHOST, serv, NI_MAXSERV,
+            NI_NUMERICHOST | NI_NUMERICSERV);
+
+	std::cout << "Conexión desde " << host << " " << serv << std::endl;
+
+    return 0;
 }
 
 bool operator== (const Socket &s1, const Socket &s2)

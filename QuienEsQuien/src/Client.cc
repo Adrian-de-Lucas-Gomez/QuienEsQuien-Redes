@@ -8,7 +8,11 @@ void Client::login()
     ChatMessage em(nick, msg);
     em.type = ChatMessage::LOGIN;
 
-    socket.send(em, socket);
+    int returnCode = socket.send(em);
+    if (returnCode == -1) {
+        std::cout << "Error: login send\n";
+        return;
+    }
 }
 
 void Client::logout()
@@ -18,7 +22,11 @@ void Client::logout()
     ChatMessage out(nick, msgLogOut);
     out.type = ChatMessage::LOGOUT;
 
-    socket.send(out, socket);
+    int returnCode = socket.send(out);
+    if (returnCode == -1) {
+        std::cout << "Error: logout send\n";
+        return;
+    }
 }
 
 void Client::input_thread()
@@ -32,17 +40,21 @@ void Client::input_thread()
 
         ChatMessage men(nick, msg);
 
-        if(msg == "LogOut"){
+        if (msg == "LOGOUT"){
             //Indica que queremos salirnos y se manda LogOut
-            men.type = ChatMessage::LOGOUT;
             desconectado = true;
+            logout();
         }
-        else{
+        else {
             //Si no se manda como mensaje normal
             men.type = ChatMessage::MESSAGE;
+
+            int returnCode = socket.send(men);
+            if (returnCode == -1) {
+                std::cout << "Error: message send\n";
+                return;
+            }
         }
-        
-        socket.send(men, socket);
         std::cout << "El mensaje se ha mandado\n";
     }
 }
@@ -52,8 +64,11 @@ void Client::net_thread()
     while(!desconectado)
     {
         ChatMessage recibido;
+
         //Recibir Mensajes de red
-        socket.recv(recibido);
+        int returnCode = socket.recv(recibido);
+        if(returnCode <= 0)
+            continue;
 
         if(recibido.nick != nick){   //SI es mi mensaje se ignora
             //Mostrar en pantalla el mensaje de la forma "nick: mensaje"

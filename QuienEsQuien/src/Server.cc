@@ -1,76 +1,69 @@
 #include "Server.h"
 #include "Chat.h"
 
+Server::Server(const char * s, const char * p) : socket(s, p, 0)
+{
+    std::cout << "Creado servidor en " << s << ":" << p << '\n';
+
+    int aux = socket.accept();
+    if (aux != 0) {
+        std::cout << "El cliente no se pudo conectar al servidor\n";
+        return;
+    }
+    std::cout << "El cliente se pudo conectar al servidor UWU\n";
+}
+
 void Server::do_messages()
 {
     while (true)
     {
-        /*
-         * NOTA: los clientes están definidos con "smart pointers", es necesario
-         * crear un unique_ptr con el objeto socket recibido y usar std::move
-         * para añadirlo al vector
-         */
-
-        //Recibir Mensajes en y en función del tipo de mensaje
+        //Recibir Mensajes y en función del tipo de mensaje
         ChatMessage mensaje;
-        Socket *sock= &socket;
+        Socket *sock = new Socket(socket);
+        //std::cout << "A\n";
 
-        int aux = socket.recv(mensaje, sock);
+        int returnCode = socket.recv(mensaje, sock);
+        if(returnCode == -1)
+            continue;
 
-        if(aux != -1)
+        //std::cout << "B\n";
+
+        std::unique_ptr<Socket> cliente(sock);
+
+        // - LOGIN: Añadir al vector clients
+        // - LOGOUT: Eliminar del vector clients
+        // - MESSAGE: Reenviar el mensaje a todos los clientes (menos el emisor)
+        switch (mensaje.type)
         {
-            std::unique_ptr<Socket> cliente(sock);
+        case 0:
+        {
+            std::cout << "Recibido LOGIN del jugador " << mensaje.nick << "\n";
+            clients.push_back(std::move(cliente));
+            break;
+        }
+        case 1:
+        {
+            std::cout << "Recibido MESSAGE de " << mensaje.nick << "\n";
+            socket.send(mensaje);
+            // for (int i = 0; i < clients.size(); i++)
+            // {
+            //     Socket aux = *clients[i].get();
 
-            // - LOGIN: Añadir al vector clients
-            // - LOGOUT: Eliminar del vector clients
-            // - MESSAGE: Reenviar el mensaje a todos los clientes (menos el emisor)
-            switch (mensaje.type)
-            {
-                case 0:
-                {
-                    std::cout << "Recibido LOGGIN de " << mensaje.nick << "\n";
-                    clients.push_back(std::move(cliente));
-                    break;
-                }
-                case 1:
-                {
-                    std::cout << "Recibido MESSAGE de " << mensaje.nick << "\n";
-                    for (int i = 0; i < clients.size(); i++)
-                    {
-                        Socket aux = *clients[i].get();
-
-                        if (!(aux == *cliente))
-                        { //Si no es la misma persona se lo reenvio
-                            socket.send(mensaje, aux);
-                        }
-                    }
-                    break;
-                }
-                case 2:
-                {
-                    std::cout << "LOGOUT de " << mensaje.nick << "\n";
-
-                    bool desconexionRealizada = false;
-                    int i = 0;
-
-                    while (!desconexionRealizada && i < clients.size())
-                    {
-                        Socket aux = *clients[i].get();
-
-                        if (aux == *sock)
-                        { //Si no es la misma persona se lo reenvio
-                            socket.send(mensaje, aux);
-                            clients.erase(clients.begin() + i);
-                            desconexionRealizada = true;
-                        }
-
-                        i++;
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
+            //     if (!(aux == *cliente))
+            //     { //Si no es la misma persona se lo reenvio
+            //         socket.send(mensaje);
+            //     }
+            // }
+            break;
+        }
+        case 2:
+        {
+            std::cout << "LOGOUT del jugador " << mensaje.nick << "\n";
+            clients.erase(clients.begin());
+            break;
+        }
+        default:
+            break;
         }
     }
 }
