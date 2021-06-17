@@ -46,11 +46,9 @@ int main (int argc, char* argv[])
 		SDL_Event e;
 		if (SDL_PollEvent(&e)) {
 			if (e.type == SDL_QUIT) {
-                std::cout << "QUIT\n";
 				break;
             }
 			else if (e.type == SDL_KEYUP && e.key.keysym.sym == SDLK_ESCAPE) {
-                std::cout << "QUIT\n";
 				break;
             }
 		} 

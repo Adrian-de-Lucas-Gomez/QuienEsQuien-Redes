@@ -50,7 +50,7 @@ public:
     static const int32_t MAX_MESSAGE_SIZE = 32768;
 
     /**
-     *  Construye el socket UDP con la dirección y puerto dados. Esta función
+     *  Construye el socket TCP con la dirección y puerto dados. Esta función
      *  usara getaddrinfo para obtener la representación binaria de dirección y
      *  puerto.
      *
@@ -58,8 +58,9 @@ public:
      *
      *    @param address cadena que representa la dirección o nombre
      *    @param port cadena que representa el puerto o nombre del servicio
+     *    @param type si es servidor(0) o cliente(1)
      */
-    Socket(const char * address, const char * port);
+    Socket(const char * address, const char * port, const int type);
 
     /**
      *  Inicializa un Socket copiando los parámetros del socket
@@ -98,14 +99,6 @@ public:
      *    @return 0 en caso de éxito o -1 si error
      */
     int send(Serializable& obj, const Socket& sock);
-
-    /**
-     *  Enlaza el descriptor del socket a la dirección y puerto
-     */
-    int bind()
-    {
-        return ::bind(sd, (const struct sockaddr *) &sa, sa_len);
-    }
 
     friend std::ostream& operator<<(std::ostream& os, const Socket& dt);
 

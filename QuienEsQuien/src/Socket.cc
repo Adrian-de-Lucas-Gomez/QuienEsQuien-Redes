@@ -3,9 +3,9 @@
 #include "Serializable.h"
 #include "Socket.h"
 
-Socket::Socket(const char *address, const char *port) : sd(-1)
+Socket::Socket(const char *address, const char *port, const int type) : sd(-1)
 {
-    //Construir un socket de tipo AF_INET y SOCK_DGRAM usando getaddrinfo.
+    //Construir un socket de tipo AF_INET y SOCK_STREAM usando getaddrinfo.
     //Con el resultado inicializar los miembros sd, sa y sa_len de la clase
     struct addrinfo infoaddres;
     struct addrinfo *sockaddr;
@@ -13,49 +13,71 @@ Socket::Socket(const char *address, const char *port) : sd(-1)
     memset((void*) &infoaddres, 0, sizeof(struct addrinfo));    //Reservamos memoria
 
     infoaddres.ai_family = AF_INET; //Mira para IPv4
-    infoaddres.ai_socktype = SOCK_DGRAM; //UDP
+    infoaddres.ai_socktype = SOCK_STREAM; //TCP
 
-    //Probamos a ve si aparece la direccion en la red
-    int info = getaddrinfo(address, port, &infoaddres, &sockaddr); 
+    int info = getaddrinfo(address, port, &infoaddres, &sockaddr);
+
     if(info != 0)   //Ha habido un error y acaba el programa
     { 
         std::cout << "Error: Servicio desconocido\n";
-    }
-    
-    sd = socket( sockaddr->ai_family, sockaddr->ai_socktype,0);
-
-    if(sd == -1)   //Ha habido un error y acaba el programa
-    { 
-        std::cout << "Error: socket\n";
+        return;
     }
 
+    if(type == 0) //Si esta en modo servidor abre las conexiones
+    {
+        int sd = socket(sockaddr->ai_family, sockaddr->ai_socktype, 0);
+        if (sd == -1)
+        {
+            std::cerr << "Error: socket\n";
+            return;
+        }
+
+        int returnCode = bind(sd, sockaddr->ai_addr, sockaddr->ai_addrlen);
+        if (returnCode == -1)
+        {
+            std::cerr << "Error: bind\n";
+            return;
+        }
+
+        returnCode = listen(sd, 16);
+        if (returnCode == -1)
+        {
+            std::cerr << "Error: listen\n";
+            return;
+        }
+    }
+    else  //Si esta en en modo cliente se trata de conectar
+    {
+        int sd = socket(sockaddr->ai_family, sockaddr->ai_socktype, 0);
+        if (sd == -1)
+        {
+            std::cout << "Error: socket\n";
+            return;
+        }
+
+        if (connect(sd, sockaddr->ai_addr, sockaddr->ai_addrlen) == -1)
+        {
+            std::cout << "Error: connect\n";
+            return;
+        }
+    }
+
+    //Guardamos la información de la direccion
     sa = *sockaddr->ai_addr;
     sa_len = sockaddr->ai_addrlen;
 
-}
-
-Socket::Socket(struct sockaddr *_sa, socklen_t _sa_len) : sd(-1), sa(*_sa), sa_len(_sa_len){
-    sd = socket(AF_INET, SOCK_DGRAM, 0);
-    bind();
+    freeaddrinfo(sockaddr);
 }
 
 int Socket::recv(Serializable &obj, Socket * &sock)
 {
-    struct sockaddr sa;
-    socklen_t sa_len = sizeof(struct sockaddr);
-
     char buffer[MAX_MESSAGE_SIZE];
 
-    ssize_t bytes = ::recvfrom(sd, buffer, MAX_MESSAGE_SIZE, 0, &sa, &sa_len);
+    ssize_t bytes = ::recv(sd, buffer, MAX_MESSAGE_SIZE, 0);
 
     if ( bytes <= 0 )
     {
         return -1;
-    }
-
-    if ( sock != 0 )
-    {
-        sock = new Socket(&sa, sa_len);
     }
 
     obj.from_bin(buffer);
@@ -68,7 +90,7 @@ int Socket::send(Serializable& obj, const Socket& sock)
     //Serializar el objeto
     obj.to_bin();   //Llamamos al metodo de serializacion del objeto a mandar
     //Enviar el objeto binario a sock usando el socket sd
-    int envioMensaje= sendto(sock.sd, obj.data(), obj.size(), 0, &sock.sa, sock.sa_len);
+    int envioMensaje = ::send(sock.sd, obj.data(), obj.size(), 0);
 	return 0;
 }
 
