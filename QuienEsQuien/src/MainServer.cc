@@ -6,5 +6,7 @@ int main(int argc, char **argv)
 
     es.do_messages();
 
+    es.closeServer();
+
     return 0;
 }

@@ -75,14 +75,14 @@ Socket::Socket(struct sockaddr * _sa, socklen_t _sa_len):sd(-1), sa(*_sa), sa_le
     sd = socket(AF_INET, SOCK_STREAM, 0);
 }
 
-int Socket::recv(Serializable &obj, Socket * &sock)
+int Socket::recv(Serializable &obj, Socket * &sock, int sdOther)
 {
     // struct sockaddr sa;
     // socklen_t sa_len = sizeof(struct sockaddr);
 
     char buffer[MAX_MESSAGE_SIZE];
 
-    ssize_t bytes = ::recv(sd, buffer, MAX_MESSAGE_SIZE, 0);
+    ssize_t bytes = ::recv(sdOther, buffer, MAX_MESSAGE_SIZE, 0);
 
     if ( bytes <= 0 )
     {
@@ -99,12 +99,12 @@ int Socket::recv(Serializable &obj, Socket * &sock)
     return 0;
 }
 
-int Socket::send(Serializable& obj) //, const Socket& sock
+int Socket::send(Serializable& obj, int sdOther) //, const Socket& sock
 {
     //Serializar el objeto
     obj.to_bin();   //Llamamos al metodo de serializacion del objeto a mandar
     //Enviar el objeto binario a sock usando el socket sd
-    int envioMensaje = ::send(sd, obj.data(), obj.size(), 0);
+    int envioMensaje = ::send(sdOther, obj.data(), obj.size(), 0);
 
     if(envioMensaje < 0 )
         std::cerr << "Error: send " << strerror(errno) << "\n";
@@ -130,7 +130,7 @@ int Socket::accept()
 
 	std::cout << "Conexión desde " << host << " " << serv << std::endl;
 
-    return 0;
+    return client_sd;
 }
 
 bool operator== (const Socket &s1, const Socket &s2)

@@ -5,12 +5,12 @@ Server::Server(const char * s, const char * p) : socket(s, p, 0)
 {
     std::cout << "Creado servidor en " << s << ":" << p << '\n';
 
-    int aux = socket.accept();
-    if (aux != 0) {
+    client_sd = socket.accept();
+    if (client_sd != 0) {
         std::cout << "El cliente no se pudo conectar al servidor\n";
         return;
     }
-    std::cout << "El cliente se pudo conectar al servidor UWU\n";
+    std::cout << "Se ha conectado el cliente\n";
 }
 
 void Server::do_messages()
@@ -22,7 +22,7 @@ void Server::do_messages()
         Socket *sock = new Socket(socket);
         //std::cout << "A\n";
 
-        int returnCode = socket.recv(mensaje, sock);
+        int returnCode = socket.recv(mensaje, sock, client_sd);
         if(returnCode == -1)
             continue;
 
@@ -44,7 +44,7 @@ void Server::do_messages()
         case 1:
         {
             std::cout << "Recibido MESSAGE de " << mensaje.nick << "\n";
-            socket.send(mensaje);
+            socket.send(mensaje, client_sd);
             // for (int i = 0; i < clients.size(); i++)
             // {
             //     Socket aux = *clients[i].get();

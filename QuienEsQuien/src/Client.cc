@@ -8,7 +8,7 @@ void Client::login()
     ChatMessage em(nick, msg);
     em.type = ChatMessage::LOGIN;
 
-    int returnCode = socket.send(em);
+    int returnCode = socket.send(em, socket.getSD());
     if (returnCode == -1) {
         std::cout << "Error: login send\n";
         return;
@@ -22,7 +22,7 @@ void Client::logout()
     ChatMessage out(nick, msgLogOut);
     out.type = ChatMessage::LOGOUT;
 
-    int returnCode = socket.send(out);
+    int returnCode = socket.send(out, socket.getSD());
     if (returnCode == -1) {
         std::cout << "Error: logout send\n";
         return;
@@ -49,7 +49,7 @@ void Client::input_thread()
             //Si no se manda como mensaje normal
             men.type = ChatMessage::MESSAGE;
 
-            int returnCode = socket.send(men);
+            int returnCode = socket.send(men, socket.getSD());
             if (returnCode == -1) {
                 std::cout << "Error: message send\n";
                 return;
@@ -66,7 +66,7 @@ void Client::net_thread()
         ChatMessage recibido;
 
         //Recibir Mensajes de red
-        int returnCode = socket.recv(recibido);
+        int returnCode = socket.recv(recibido, socket.getSD());
         if(returnCode <= 0)
             continue;
 

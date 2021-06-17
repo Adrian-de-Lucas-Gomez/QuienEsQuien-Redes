@@ -71,36 +71,32 @@ public:
 
     /**
      *  Recibe un mensaje de aplicación
-     *
      *    @param obj que recibirá los datos de la red. Se usará para la
      *    reconstrucción del objeto mediante Serializable::from_bin del interfaz.
-     *
      *    @param sock que identificará al extremo que envía los datos si es
      *    distinto de 0 se creará un objeto Socket con la dirección y puerto.
-     *
      *    @return 0 en caso de éxito o -1 si error (cerrar conexión)
      */
-    int recv(Serializable &obj, Socket * &sock);
+    int recv(Serializable &obj, Socket * &sock, int sdOther);
 
-    int recv(Serializable &obj) //Descarta los datos del otro extremo
+    int recv(Serializable &obj, int sdOther) //Descarta los datos del otro extremo
     {
         Socket * s = 0;
 
-        return recv(obj, s);
+        return recv(obj, s, sdOther);
     }
 
     /**
      *  Envía un mensaje de aplicación definido por un objeto Serializable.
-     *
      *    @param obj en el que se enviará por la red. La función lo serializará
-     *
-     *    @param sock con la dirección y puerto destino
-     *
+     *    @param sdOther
      *    @return 0 en caso de éxito o -1 si error
      */
-    int send(Serializable& obj);    //, const Socket& sock
+    int send(Serializable& obj, int sdOther);
 
     int accept();
+
+    int getSD() { return sd; }
 
     friend std::ostream& operator<<(std::ostream& os, const Socket& dt);
 

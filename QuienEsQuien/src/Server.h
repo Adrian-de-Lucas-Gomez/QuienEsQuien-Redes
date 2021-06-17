@@ -18,7 +18,10 @@ public:
     //lo distribuye a los clientes. Mantiene actualizada la lista de clientes
     void do_messages();
 
+    void closeServer() { close(socket.getSD()); }
+
 private:
+    int client_sd;
     std::vector<std::unique_ptr<Socket>> clients;
     Socket socket;
 };

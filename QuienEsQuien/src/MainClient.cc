@@ -13,5 +13,8 @@ int main(int argc, char **argv)
 
     //Para evitar errores nos aseguramos que se una la thread
     net_thread.join();
+
+    ec.closeClient();
+
     return 0;
 }
