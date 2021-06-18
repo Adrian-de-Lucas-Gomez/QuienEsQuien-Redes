@@ -39,6 +39,7 @@ public:
 
 private:
     void chooseFaces();
+    void resolve(bool win);
 
     bool inGame;
     bool tocaResponder;

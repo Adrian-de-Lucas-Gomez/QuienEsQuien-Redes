@@ -51,6 +51,15 @@ void Client::chooseFaces()
     }
 }
 
+void Client::resolve(bool win)
+{
+    std::cout << "\nSE ACABÓ LA PARTIDA\n";
+    if (win)
+        std::cout << "¡Enhorabuena! Has ganado" << "\n";
+    else
+        std::cout << "¡Oh no! Has perdido" << "\n";
+}
+
 void Client::input_thread()
 {
     do
@@ -70,13 +79,12 @@ void Client::input_thread()
                 std::cout << "Error: send\n";
                 return;
             }
-
             tocaResponder = false;
         }
-        else {
+        else if (miTurno)
+        {
             std::string msg;
             std::getline(std::cin, msg);
-
             ChatMessage men(nick, msg);
 
             if (msg == "SALIR")
@@ -84,38 +92,39 @@ void Client::input_thread()
                 logout();
                 break;
             }
-            else if (miTurno)
-            {
-                if(msg == "PASAR") {
-                    men.type = ChatMessage::PASAR;
-                    miTurno = false;
-                }
-                else if(msg == "RESOLVER") {
-                    std::cout << "ID de cara [0, 18): ";
-                    int8_t aux;
-                    std::cin >> aux;
+            else if(msg == "PASAR") {
+                men.type = ChatMessage::PASAR;
+                miTurno = false;
+            }
+            else if(msg == "RESOLVER") {
+                std::cout << "ID de cara [0, 18): ";
+                int8_t aux;
+                std::cin >> aux;
 
-                    //Comprobamos si has acertado
-                    if (aux == otherFace)
-                        men.type = ChatMessage::FIN_PIERDES;
-                    else
-                        men.type = ChatMessage::FIN_GANAS;
+                //Comprobamos si has acertado
+                if (aux == otherFace) {
+                    men.type = ChatMessage::FIN_PIERDES;
+                    resolve(true);
                 }
                 else {
-                    men.type = ChatMessage::PREGUNTAR;
+                    men.type = ChatMessage::FIN_GANAS;
+                    resolve(false);
                 }
+                miTurno = false;           
+            }
+            else {
+                men.type = ChatMessage::PREGUNTAR;
+            }
 
-                //Enviar el mensaje
-                int returnCode = socket.send(men, socket.getSD());
-                if (returnCode == -1)
-                {
-                    std::cout << "Error: send\n";
-                    return;
-                }
+            //Enviar el mensaje
+            int returnCode = socket.send(men, socket.getSD());
+            if (returnCode == -1)
+            {
+                std::cout << "Error: send\n";
+                return;
             }
             std::cout << "El mensaje se ha mandado\n";
         }
-
     } while (inGame);
 
     std::cout << "Cliente sale de input_thread\n";
@@ -160,13 +169,11 @@ void Client::net_thread()
                 break;
             }
             case ChatMessage::FIN_GANAS: {
-                std::cout << "\nSE ACABÓ LA PARTIDA\n";
-                std::cout << "¡Enhorabuena! Has ganado" << "\n";
+                resolve(true);
                 break;
             }
             case ChatMessage::FIN_PIERDES: {
-                std::cout << "\nSE ACABÓ LA PARTIDA\n";
-                std::cout << "¡Oh no! Has perdido" << "\n";
+                resolve(false);
                 break;
             }    
             default:

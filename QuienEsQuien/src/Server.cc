@@ -16,6 +16,8 @@ Server::Server(const char * s, const char * p, const char * n) :
     inGame = true;
 
     chooseFaces();
+
+    std::cout << "\n\nTE TOCA JUGAR " << nick << "\n";
 }
 
 int Server::waitForClient()
@@ -61,6 +63,15 @@ void Server::chooseFaces()
     }
 }
 
+void Server::resolve(int win)
+{
+    std::cout << "\nSE ACABÓ LA PARTIDA\n";
+    if (win)
+        std::cout << "¡Enhorabuena! Has ganado" << "\n";
+    else
+        std::cout << "¡Oh no! Has perdido" << "\n";
+}
+
 //Mensjes: Resolver, preguntar, respuesta, pasar turno
 //mandar cara(la que tiene el oponente), fin de partida.
 void Server::do_messages()  
@@ -104,13 +115,11 @@ void Server::do_messages()
                 break;
             }
             case ChatMessage::FIN_GANAS: {
-                std::cout << "\nSE ACABÓ LA PARTIDA\n";
-                std::cout << "¡Enhorabuena! Has ganado" << "\n";
+                resolve(true);
                 break;
             }
             case ChatMessage::FIN_PIERDES: {
-                std::cout << "\nSE ACABÓ LA PARTIDA\n";
-                std::cout << "¡Oh no! Has perdido" << "\n";
+                resolve(false);
                 break;
             }    
             default:
@@ -141,55 +150,49 @@ void Server::input_thread()
                 std::cout << "Error: send\n";
                 return;
             }
-
             tocaResponder = false;
         }
-        else {
+        else if (miTurno)
+        {
             std::string msg;
-            std::getline(std::cin, msg); //TODO esto se para aqui: cambiar a miTurno
-
+            std::getline(std::cin, msg);
             ChatMessage men(nick, msg); 
 
             if (msg == "SALIR")
             {
                 inGame = false;
                 men.type = ChatMessage::SALIR;
-                int returnCode = socket.send(men, client_sd);
-                if (returnCode == -1)
-                {
-                    std::cout << "Error: send\n";
-                    return;
-                }
-                break;
             }
-            else if (miTurno)
-            {
-                if(msg == "PASAR") {
-                    men.type = ChatMessage::PASAR;
-                    miTurno = false;
-                }
-                else if(msg == "RESOLVER") {
-                    std::cout << "ID de cara [0, 18): ";
-                    int8_t aux;
-                    std::cin >> aux;
+            else if(msg == "PASAR") {
+                men.type = ChatMessage::PASAR;
+                miTurno = false;
+            }
+            else if(msg == "RESOLVER") {
+                std::cout << "ID de cara [0, 18): ";
+                int8_t aux;
+                std::cin >> aux;
 
-                    //Comprobamos si has acertado
-                    if (aux == otherFace)
-                        men.type = ChatMessage::FIN_PIERDES;
-                    else
-                        men.type = ChatMessage::FIN_GANAS;
-                }
+                //Comprobamos si has acertado
+                if (aux == otherFace) {
+                    men.type = ChatMessage::FIN_PIERDES;
+                    resolve(true);
+                }  
                 else {
-                    men.type = ChatMessage::PREGUNTAR;
+                    men.type = ChatMessage::FIN_GANAS;
+                    resolve(false);
                 }
+                miTurno = false;
+            }
+            else {
+                men.type = ChatMessage::PREGUNTAR;
+            }
 
-                //Enviar el mensaje
-                int returnCode = socket.send(men, client_sd);
-                if (returnCode == -1)
-                {
-                    std::cout << "Error: send\n";
-                    return;
-                }
+            //Enviar el mensaje
+            int returnCode = socket.send(men, client_sd);
+            if (returnCode == -1)
+            {
+                std::cout << "Error: send\n";
+                return;
             }
             std::cout << "El mensaje se ha mandado\n";
         }

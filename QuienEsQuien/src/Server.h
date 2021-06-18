@@ -25,6 +25,7 @@ public:
 private:
     int waitForClient();
     void chooseFaces();
+    void resolve(int win);
 
     bool inGame;
     bool tocaResponder;
