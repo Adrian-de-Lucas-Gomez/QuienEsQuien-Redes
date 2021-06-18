@@ -19,7 +19,7 @@ public:
      * @param p puerto del servidor
      * @param n nick del usuario
      */
-    Client(const char * s, const char * p, const char * n) : socket(s, p, 1), nick(n) {};
+    Client(const char * s, const char * p, const char * n) : socket(s, p, 1), nick(n), miTurno(false) {};
 
     //Envía el mensaje de login al servidor
     void login();
@@ -39,4 +39,5 @@ public:
 private:
     Socket socket;
     std::string nick;
+    bool miTurno;
 };

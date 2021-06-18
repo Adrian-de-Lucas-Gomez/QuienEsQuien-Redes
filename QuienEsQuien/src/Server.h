@@ -12,16 +12,22 @@
 class Server
 {
 public:
-    Server(const char * s, const char * p);
+    Server(const char * s, const char * p, const char * n);
 
     //Thread principal del servidor: recive mensajes en el socket y
     //lo distribuye a los clientes. Mantiene actualizada la lista de clientes
     void do_messages();
 
+    void input_thread();
+
     void closeServer() { close(socket.getSD()); }
 
 private:
+    int waitForClient();
+
+    bool miTurno;
     int client_sd;
+    std::string nick;
     std::vector<std::unique_ptr<Socket>> clients;
     Socket socket;
 };

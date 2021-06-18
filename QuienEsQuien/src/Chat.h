@@ -33,7 +33,15 @@ public:
     {
         LOGIN   = 0,
         MESSAGE = 1,
-        LOGOUT  = 2
+        LOGOUT  = 2,
+
+        //Mensajes exclusivos del QuienEsQuien
+        PREGUNTAR = 3,  //Manda mensaje para preguntar sobre el personaje enemigo
+        RESOLVER = 4,   //Mandar ID de la cara que crea oportuna
+        RESPONDER = 5,  //SI o NO
+        PASAR = 6,      //Acabar el turno
+        INICIO = 7,     //Manda cara propia
+        FIN = 8,        //Se manda al acertar o fallar al resolver
     };
 
     ChatMessage(){};

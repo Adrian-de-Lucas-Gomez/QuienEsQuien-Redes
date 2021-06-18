@@ -31,48 +31,62 @@ void Client::logout()
 
 void Client::input_thread()
 {
-    while (!desconectado)
+    do
     {
-        // Leer stdin con std::getline
-        // Enviar al servidor usando socket
-        std::string msg;
-        std::getline(std::cin,msg);
+        while (miTurno)
+        {
+            // Leer stdin con std::getline
+            // Enviar al servidor usando socket
+            std::string msg;
+            std::getline(std::cin, msg);
 
-        ChatMessage men(nick, msg);
+            ChatMessage men(nick, msg);
 
-        if (msg == "LOGOUT"){
-            //Indica que queremos salirnos y se manda LogOut
-            desconectado = true;
-            logout();
-        }
-        else {
-            //Si no se manda como mensaje normal
-            men.type = ChatMessage::MESSAGE;
-
-            int returnCode = socket.send(men, socket.getSD());
-            if (returnCode == -1) {
-                std::cout << "Error: message send\n";
-                return;
+            if (msg == "LOGOUT")
+            {
+                //Indica que queremos salirnos y se manda LogOut
+                desconectado = true;
+                logout();
             }
+            else
+            {
+                //Si no se manda como mensaje normal
+                men.type = ChatMessage::MESSAGE;
+
+                int returnCode = socket.send(men, socket.getSD());
+                if (returnCode == -1)
+                {
+                    std::cout << "Error: message send\n";
+                    return;
+                }
+
+                miTurno = false; //TODO
+            }
+            std::cout << "El mensaje se ha mandado\n";
         }
-        std::cout << "El mensaje se ha mandado\n";
-    }
+    } while (!desconectado);
 }
 
 void Client::net_thread()
 {
-    while(!desconectado)
+    do
     {
-        ChatMessage recibido;
+        while (!miTurno)
+        {
+            ChatMessage recibido;
 
-        //Recibir Mensajes de red
-        int returnCode = socket.recv(recibido, socket.getSD());
-        if(returnCode <= 0)
-            continue;
+            //Recibir Mensajes de red
+            int returnCode = socket.recv(recibido, socket.getSD());
+            if (returnCode == -1)
+                continue;
 
-        if(recibido.nick != nick){   //SI es mi mensaje se ignora
-            //Mostrar en pantalla el mensaje de la forma "nick: mensaje"
-            std::cout << recibido.nick << " dijo: " << recibido.message << "\n";
+            if (recibido.type == ChatMessage::MESSAGE)
+            {
+                miTurno = true; //TODO
+
+                //Mostrar en pantalla el mensaje de la forma "nick: mensaje"
+                std::cout << recibido.nick << " dijo: " << recibido.message << "\n";
+            }
         }
-    }
+    } while (!desconectado);
 }
