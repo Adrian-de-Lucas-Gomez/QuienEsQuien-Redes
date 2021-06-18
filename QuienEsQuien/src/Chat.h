@@ -27,33 +27,33 @@
 class ChatMessage: public Serializable
 {
 public:
-    static const size_t MESSAGE_SIZE = sizeof(char) * 88 + sizeof(uint8_t);
+    static const size_t MESSAGE_SIZE = sizeof(char) * 88 + sizeof(uint8_t) + sizeof(int8_t);
+    static const uint8_t NUM_FACES = 18;
 
     enum MessageType
     {
-        LOGIN   = 0,
-        MESSAGE = 1,
-        LOGOUT  = 2,
+        NUEVAPARTIDA = 0, //Se une un jugador
+        SALIR  = 1, //Cerrar la conexión (volver al menú)
 
-        //Mensajes exclusivos del QuienEsQuien
-        PREGUNTAR = 3,  //Manda mensaje para preguntar sobre el personaje enemigo
-        RESOLVER = 4,   //Mandar ID de la cara que crea oportuna
-        RESPONDER = 5,  //SI o NO
-        PASAR = 6,      //Acabar el turno
-        INICIO = 7,     //Manda cara propia
-        FIN = 8,        //Se manda al acertar o fallar al resolver
+        //Mensajes exclusivos del QuienEsQuien:
+
+        PREGUNTAR = 2,  //Manda mensaje para preguntar sobre el personaje enemigo
+        RESPONDER = 3,  //SI o NO
+        PASAR = 4,      //Acabar el turno
+        INICIO = 5,     //Manda cara propia
+        FIN_GANAS = 6,  //Se manda al jugador que ha ganado
+        FIN_PIERDES = 7 //Se manda al jugador que ha perdido
     };
 
     ChatMessage(){};
-
-    ChatMessage(const std::string& n, const std::string& m):nick(n),message(m){};
+    ChatMessage(const std::string& n, const std::string& m = "", const int8_t& face = -1) :
+        nick(n), message(m), idFace(face) {};
 
     void to_bin();
-
     int from_bin(char * bobj);
 
-    uint8_t type= -1;
-
+    uint8_t type = -1;
+    int8_t idFace = -1;
     std::string nick;
     std::string message;
 };

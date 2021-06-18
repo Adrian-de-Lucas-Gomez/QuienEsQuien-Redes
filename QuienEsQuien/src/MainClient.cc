@@ -14,6 +14,7 @@ int main(int argc, char **argv)
     //Para evitar errores nos aseguramos que se una la thread
     net_thread.join();
 
+    std::cout << "Cliente cerrado\n";
     ec.closeClient();
 
     return 0;

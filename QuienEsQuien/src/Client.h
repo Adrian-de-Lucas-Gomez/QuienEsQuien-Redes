@@ -19,7 +19,8 @@ public:
      * @param p puerto del servidor
      * @param n nick del usuario
      */
-    Client(const char * s, const char * p, const char * n) : socket(s, p, 1), nick(n), miTurno(false) {};
+    Client(const char * s, const char * p, const char * n) :
+        socket(s, p, 1), nick(n), miTurno(false), inGame(true), tocaResponder(false) {};
 
     //Envía el mensaje de login al servidor
     void login();
@@ -37,7 +38,14 @@ public:
     void closeClient() { close(socket.getSD()); }
 
 private:
+    void chooseFaces();
+
+    bool inGame;
+    bool tocaResponder;
+    bool miTurno;
     Socket socket;
     std::string nick;
-    bool miTurno;
+
+    int8_t myFace;
+    int8_t otherFace;
 };

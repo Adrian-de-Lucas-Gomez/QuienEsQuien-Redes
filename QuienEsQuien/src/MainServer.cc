@@ -11,6 +11,7 @@ int main(int argc, char **argv)
     
     input_thread.join();
 
+    std::cout << "Servidor cerrado\n";
     es.closeServer();
 
     return 0;

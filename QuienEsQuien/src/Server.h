@@ -24,10 +24,16 @@ public:
 
 private:
     int waitForClient();
+    void chooseFaces();
 
+    bool inGame;
+    bool tocaResponder;
     bool miTurno;
     int client_sd;
     std::string nick;
     std::vector<std::unique_ptr<Socket>> clients;
     Socket socket;
+
+    int8_t myFace;
+    int8_t otherFace;
 };
