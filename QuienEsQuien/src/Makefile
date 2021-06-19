@@ -7,16 +7,12 @@ LIBS=-lpthread
 %.o: %.cc $(DEPS)
 	$(CC) -g -c -o $@ $< $(CFLAGS)
 
-all: serverApp clientApp
+all: QuienEsQuienApp
 
-serverApp: $(OBJ) MainServer.o
+QuienEsQuienApp: $(OBJ) main.o
 	g++ -o $@ $^ $(CFLAGS) $(LIBS)
-
-clientApp: $(OBJ) MainClient.o
-	g++ -o $@ $^ $(CFLAGS) $(LIBS)
-
 
 .PHONY: clean
 
 clean:
-	rm -f *.o serverApp clientApp
+	rm -f *.o QuienEsQuienApp

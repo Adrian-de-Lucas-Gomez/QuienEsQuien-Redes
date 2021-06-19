@@ -128,8 +128,6 @@ void Server::do_messages()
             }
         }
     } while (inGame);
-
-    std::cout << "Servidor salio de do_messages\n";
 }
 
 void Server::input_thread() {
@@ -216,6 +214,4 @@ void Server::input_thread() {
                 break;
         }
     } while(inGame);
-
-    std::cout << "Servidor sale de input_thread\n";
 }
