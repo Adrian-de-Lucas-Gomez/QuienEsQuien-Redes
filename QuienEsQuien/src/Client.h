@@ -12,15 +12,18 @@
 class Client
 {
 public:
-    bool desconectado=false;
+    enum Estado {
+        TOCA_ESCRIBIR = 0,
+        TOCA_RESPONDER = 1,
+        TOCA_PASAR = 2,
+        TOCA_ESPERAR = 3
+    };
 
-    /**
-     * @param s dirección del servidor
-     * @param p puerto del servidor
-     * @param n nick del usuario
-     */
     Client(const char * s, const char * p, const char * n) :
-        socket(s, p, 1), nick(n), miTurno(false), inGame(true), tocaResponder(false) {};
+        socket(s, p, 1), nick(n), inGame(true), state(Estado::TOCA_ESPERAR)
+    {
+        srand(time(0));
+    };
 
     //Envía el mensaje de login al servidor
     void login();
@@ -41,12 +44,11 @@ private:
     void chooseFaces();
     void resolve(bool win);
 
-    bool inGame;
-    bool tocaResponder;
-    bool miTurno;
     Socket socket;
     std::string nick;
 
-    int8_t myFace;
-    int8_t otherFace;
+    bool inGame;
+    uint8_t state;
+    int myFace;
+    int otherFace;
 };

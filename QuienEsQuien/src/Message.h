@@ -24,10 +24,10 @@
  *  +-------------------+
  *
  */
-class ChatMessage: public Serializable
+class GameMessage: public Serializable
 {
 public:
-    static const size_t MESSAGE_SIZE = sizeof(char) * 88 + sizeof(uint8_t) + sizeof(int8_t);
+    static const size_t MESSAGE_SIZE = sizeof(char) * 88 + sizeof(uint8_t) + sizeof(int);
     static const uint8_t NUM_FACES = 18;
 
     enum MessageType
@@ -45,15 +45,15 @@ public:
         FIN_PIERDES = 7 //Se manda al jugador que ha perdido
     };
 
-    ChatMessage(){};
-    ChatMessage(const std::string& n, const std::string& m = "", const int8_t& face = -1) :
+    GameMessage(){};
+    GameMessage(const std::string& n, const std::string& m = "", const int& face = -1) :
         nick(n), message(m), idFace(face) {};
 
     void to_bin();
     int from_bin(char * bobj);
 
     uint8_t type = -1;
-    int8_t idFace = -1;
+    int idFace = -1;
     std::string nick;
     std::string message;
 };

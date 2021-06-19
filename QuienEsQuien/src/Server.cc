@@ -1,8 +1,8 @@
 #include "Server.h"
-#include "Chat.h"
+#include "Message.h"
 
 Server::Server(const char * s, const char * p, const char * n) :
-    socket(s, p, 0), nick(n), miTurno(true), inGame(false), tocaResponder(false)
+    socket(s, p, 0), nick(n), inGame(false), state(Estado::TOCA_ESPERAR)
 {
     srand(time(0));
     std::cout << "Creado servidor en " << s << ":" << p << '\n';
@@ -16,8 +16,6 @@ Server::Server(const char * s, const char * p, const char * n) :
     inGame = true;
 
     chooseFaces();
-
-    std::cout << "\n\nTE TOCA JUGAR " << nick << "\n";
 }
 
 int Server::waitForClient()
@@ -26,7 +24,7 @@ int Server::waitForClient()
 
     while (true)
     {
-        ChatMessage login;
+        GameMessage login;
         Socket *sock = new Socket(socket);
 
         int returnCode = socket.recv(login, sock, client_sd);
@@ -35,7 +33,7 @@ int Server::waitForClient()
 
         std::unique_ptr<Socket> cliente(sock);
 
-        if (login.type == ChatMessage::NUEVAPARTIDA)
+        if (login.type == GameMessage::NUEVAPARTIDA)
         {
             clients.push_back(std::move(cliente));
             break;
@@ -47,13 +45,13 @@ int Server::waitForClient()
 void Server::chooseFaces()
 {
     //Cara servidor
-    int randID = rand() % ChatMessage::NUM_FACES;
+    int randID = rand() % GameMessage::NUM_FACES;
     std::cout << "ID cara server: " << randID << '\n';
     myFace = randID;
 
     //Para que el cliente conozca nuestra cara internamente
-    ChatMessage men(nick, "", randID); 
-    men.type = ChatMessage::INICIO;
+    GameMessage men(nick, "", randID); 
+    men.type = GameMessage::INICIO;
 
     int returnCode = socket.send(men, client_sd);
     if (returnCode == -1)
@@ -80,7 +78,7 @@ void Server::do_messages()
     {
         while (inGame)
         {
-            ChatMessage mensaje; //Recibir Mensajes y en función del tipo de mensaje
+            GameMessage mensaje; //Recibir Mensajes y en función del tipo de mensaje
             
             int returnCode = socket.recv(mensaje, client_sd);
             if (returnCode == -1)
@@ -88,37 +86,40 @@ void Server::do_messages()
 
             switch (mensaje.type)
             {
-            case ChatMessage::SALIR: {
+            case GameMessage::SALIR: {
                 inGame = false;
                 std::cout << "\nJugador " << mensaje.nick << " ha abandonado la partida\n";
                 clients.erase(clients.begin());
                 break;
             }
-            case ChatMessage::PREGUNTAR: {
+            case GameMessage::PREGUNTAR: {
                 std::cout << "\nPREGUNTA de " << mensaje.nick << ": \n";
                 std::cout << "¿" << mensaje.message << "?\n";
-                tocaResponder = true;
+                state = Estado::TOCA_RESPONDER;
                 break;
             }
-            case ChatMessage::RESPONDER: {
+            case GameMessage::RESPONDER: {
                 std::cout << "\nRESPUESTA de " << mensaje.nick << ": \n";
                 std::cout << mensaje.message << "\n";
+                state = Estado::TOCA_PASAR;
                 break;
             }
-            case ChatMessage::PASAR: {
-                std::cout << "\nTE TOCA JUGAR " << nick << "\n";
-                miTurno = true;
+            case GameMessage::PASAR: {
+                state = Estado::TOCA_ESCRIBIR;
                 break;
             }
-            case ChatMessage::INICIO: {
+            case GameMessage::INICIO: {
+                state = Estado::TOCA_ESCRIBIR;
                 otherFace = mensaje.idFace;
                 break;
             }
-            case ChatMessage::FIN_GANAS: {
+            case GameMessage::FIN_GANAS: {
+                state = Estado::TOCA_ESPERAR;
                 resolve(true);
                 break;
             }
-            case ChatMessage::FIN_PIERDES: {
+            case GameMessage::FIN_PIERDES: {
+                state = Estado::TOCA_ESPERAR;
                 resolve(false);
                 break;
             }    
@@ -131,73 +132,90 @@ void Server::do_messages()
     std::cout << "Servidor salio de do_messages\n";
 }
 
-void Server::input_thread()
-{
-    do
-    {
-        if (tocaResponder) {
-            std::cout << "Responde (SI/NO): ";
+void Server::input_thread() {
+    do {
+        switch(state) {
+            case Estado::TOCA_ESCRIBIR: {
+                std::cout << "\nTE TOCA JUGAR " << nick << "\n";
 
-            // Leer stdin con std::getline
-            std::string msg;
-            std::getline(std::cin, msg);
+                std::string msg;
+                std::getline(std::cin, msg);
+                GameMessage men(nick, msg);
 
-            ChatMessage men(nick, msg);
-            men.type = ChatMessage::RESPONDER;
-            int returnCode = socket.send(men, client_sd);
-            if (returnCode == -1)
-            {
-                std::cout << "Error: send\n";
-                return;
-            }
-            tocaResponder = false;
-        }
-        else if (miTurno)
-        {
-            std::string msg;
-            std::getline(std::cin, msg);
-            ChatMessage men(nick, msg); 
+                if (msg == "SALIR") { inGame = false; men.type = GameMessage::SALIR; }
+                
+                else if(msg == "RESOLVER") {
+                    std::cout << "ID de cara [0, 18): ";
+                    int aux;
+                    std::cin >> aux;
 
-            if (msg == "SALIR")
-            {
-                inGame = false;
-                men.type = ChatMessage::SALIR;
-            }
-            else if(msg == "PASAR") {
-                men.type = ChatMessage::PASAR;
-                miTurno = false;
-            }
-            else if(msg == "RESOLVER") {
-                std::cout << "ID de cara [0, 18): ";
-                int8_t aux;
-                std::cin >> aux;
-
-                //Comprobamos si has acertado
-                if (aux == otherFace) {
-                    men.type = ChatMessage::FIN_PIERDES;
-                    resolve(true);
-                }  
-                else {
-                    men.type = ChatMessage::FIN_GANAS;
-                    resolve(false);
+                    //Comprobamos si has acertado
+                    if (aux == otherFace) {
+                        men.type = GameMessage::FIN_PIERDES;
+                        resolve(true);
+                    }  
+                    else {
+                        men.type = GameMessage::FIN_GANAS;
+                        resolve(false);
+                    }
                 }
-                miTurno = false;
+                else {
+                    men.type = GameMessage::PREGUNTAR;
+                }
+                //Enviar el mensaje
+                int returnCode = socket.send(men, client_sd);
+                if (returnCode == -1)
+                {
+                    std::cout << "Error: send in TOCA_ESCRIBIR\n";
+                    return;
+                }
+                state = Estado::TOCA_ESPERAR;
+                break;
             }
-            else {
-                men.type = ChatMessage::PREGUNTAR;
-            }
+            case Estado::TOCA_RESPONDER: {
+                std::cout << "\nResponde (SI/NO): ";
 
-            //Enviar el mensaje
-            int returnCode = socket.send(men, client_sd);
-            if (returnCode == -1)
-            {
-                std::cout << "Error: send\n";
-                return;
+                // Leer stdin con std::getline
+                std::string msg;
+                std::getline(std::cin, msg);
+                GameMessage men(nick, msg);
+
+                if (msg == "SALIR") { inGame = false; men.type = GameMessage::SALIR; }
+                else { men.type = GameMessage::RESPONDER; }
+                
+                int returnCode = socket.send(men, client_sd);
+                if (returnCode == -1)
+                {
+                    std::cout << "Error: send in TOCA_RESPONDER\n";
+                    return;
+                }
+                state = Estado::TOCA_ESPERAR;
+                break;
             }
-            std::cout << "El mensaje se ha mandado\n";
+            case Estado::TOCA_PASAR: {
+                std::cout << "\nPulsa ENTER para pasar de turno";
+
+                // Leer stdin con std::getline
+                std::string msg;
+                std::getline(std::cin, msg);
+                GameMessage men(nick, msg);
+
+                if (msg == "SALIR") { inGame = false; men.type = GameMessage::SALIR; }
+                else { men.type = GameMessage::PASAR; }
+
+                int returnCode = socket.send(men, client_sd);
+                if (returnCode == -1)
+                {
+                    std::cout << "Error: send in TOCA_PASAR\n";
+                    return;
+                }
+                state = Estado::TOCA_ESPERAR;
+                break;
+            }
+            default:
+                break;
         }
-
-    } while (inGame);
+    } while(inGame);
 
     std::cout << "Servidor sale de input_thread\n";
 }

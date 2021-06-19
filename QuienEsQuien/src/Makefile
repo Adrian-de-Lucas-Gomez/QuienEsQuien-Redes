@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-g -I.
-DEPS = Socket.h Chat.h Server.h Client.h
-OBJ = Socket.o Chat.o Server.o Client.o
+DEPS = Socket.h Message.h Server.h Client.h
+OBJ = Socket.o Message.o Server.o Client.o
 LIBS=-lpthread
 
 %.o: %.cc $(DEPS)

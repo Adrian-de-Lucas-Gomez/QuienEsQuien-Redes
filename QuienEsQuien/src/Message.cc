@@ -1,15 +1,12 @@
-#include "Chat.h"
+#include "Message.h"
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-
-void ChatMessage::to_bin()
+void GameMessage::to_bin()
 {
     alloc_data(MESSAGE_SIZE);
 
     memset(_data, 0, MESSAGE_SIZE);
 
-    //Serializar los campos type, idFace nick y message en el buffer _data
+    //Serializar los campos type, idFace nick y GameMessage en el buffer _data
     char *aux= _data;   //Guardamos el puntero
     
     //Escribimos primero TYPE
@@ -18,9 +15,9 @@ void ChatMessage::to_bin()
         aux += sizeof(uint8_t);
 
     //Escribimos el ID de la cara del jugador
-        memcpy(aux, &idFace, sizeof(int8_t));
+        memcpy(aux, &idFace, sizeof(int));
         //Movemos el puntero de escritura
-        aux += sizeof(int8_t);
+        aux += sizeof(int);
 
     //Escribimos el nombre del jugador
         memcpy(aux, nick.c_str(), sizeof(char) * 8);    //Nombre de 8 caracteres
@@ -33,7 +30,7 @@ void ChatMessage::to_bin()
         aux += sizeof(char)*80;
 }
 
-int ChatMessage::from_bin(char * bobj)
+int GameMessage::from_bin(char * bobj)
 {
     alloc_data(MESSAGE_SIZE);
 
@@ -48,9 +45,9 @@ int ChatMessage::from_bin(char * bobj)
         aux += sizeof(uint8_t);
 
     //Leemos el ID de la cara del jugador
-        memcpy(&idFace, aux, sizeof(int8_t));
+        memcpy(&idFace, aux, sizeof(int));
         //Movemos el puntero de escritura
-        aux += sizeof(int8_t);
+        aux += sizeof(int);
 
     //Leemos el nombre del jugador
         nick = aux;

@@ -12,6 +12,13 @@
 class Server
 {
 public:
+    enum Estado {
+        TOCA_ESCRIBIR = 0,
+        TOCA_RESPONDER = 1,
+        TOCA_PASAR = 2,
+        TOCA_ESPERAR = 3
+    };
+
     Server(const char * s, const char * p, const char * n);
 
     //Thread principal del servidor: recive mensajes en el socket y
@@ -27,14 +34,13 @@ private:
     void chooseFaces();
     void resolve(int win);
 
-    bool inGame;
-    bool tocaResponder;
-    bool miTurno;
     int client_sd;
     std::string nick;
     std::vector<std::unique_ptr<Socket>> clients;
     Socket socket;
 
-    int8_t myFace;
-    int8_t otherFace;
+    bool inGame;
+    uint8_t state;
+    int myFace;
+    int otherFace;
 };
