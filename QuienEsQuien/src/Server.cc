@@ -1,5 +1,11 @@
 #include "Server.h"
 #include "Message.h"
+#include "ButtonPermanent.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
+#define SCREEN_SIZE_X 800
+#define SCREEN_SIZE_Y 600
 
 Server::Server(const char * s, const char * p, const char * n) :
     socket(s, p, 0), nick(n), inGame(false), state(Estado::TOCA_ESPERAR)
@@ -130,7 +136,8 @@ void Server::do_messages()
     } while (inGame);
 }
 
-void Server::input_thread() {
+void Server::input_thread()
+{
     do {
         switch(state) {
             case Estado::TOCA_ESCRIBIR: {
@@ -214,4 +221,105 @@ void Server::input_thread() {
                 break;
         }
     } while(inGame);
+}
+
+void Server::sdl_thread()
+{
+    SDL_Window* window = NULL;
+    SDL_Renderer* renderer = NULL;
+
+    //Imagen
+    SDL_Texture* imgFondo = NULL;
+    int w, h; // w y h de la imagen
+
+    //Inicializar SDL
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+    {
+        fprintf(stderr, "SDL could not initialize\n");
+        return;
+    }
+
+    //Crear la ventana
+    window = SDL_CreateWindow("¿Quién es quién?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        SCREEN_SIZE_X, SCREEN_SIZE_Y, SDL_WINDOW_SHOWN);
+    if (!window)
+    {
+        fprintf(stderr, "Error creating window.\n");
+        return;
+    }
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    //Crear imagen
+    imgFondo = IMG_LoadTexture(renderer, "../media/prueba.jpg");
+	SDL_QueryTexture(imgFondo, NULL, NULL, &w, &h);
+	SDL_Rect rect;
+    rect.x = 0; rect.y = 0;
+    rect.w = w/2; rect.h = h/2; 
+
+	//Crear botones
+    Button botonSalir(20, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+        "../media/botonSalir.png", "../media/botonSalir2.png");
+    Button botonSi(SCREEN_SIZE_X - 240, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+        "../media/botonSi.png", "../media/botonSi2.png");
+    Button botonNo(SCREEN_SIZE_X - 120, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+        "../media/botonNo.png", "../media/botonNo2.png");
+    Button botonPasar(SCREEN_SIZE_X - 150, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+        "../media/botonPasar.png", "../media/botonPasar2.png");
+    Button botonResolver(SCREEN_SIZE_X - 150, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+        "../media/botonResolver.png", "../media/botonResolver2.png");
+        
+    // ButtonPermanent botonPermanente(SCREEN_SIZE_X - 200, 0, 100, 100, -1, renderer,
+    //     "../media/cara3.png", "../media/cara4.png", "../media/cara5.png");
+
+	//Bucle principal
+	while (inGame) {
+
+		SDL_Event e;
+		if (SDL_PollEvent(&e)) {
+			if (e.type == SDL_QUIT) {
+                inGame = false;
+            }
+			else if (e.type == SDL_KEYUP && e.key.keysym.sym == SDLK_ESCAPE) {
+                inGame = false;
+            }
+
+            if (state == Estado::TOCA_ESCRIBIR) {
+                botonResolver.handle_events(e);
+                botonSalir.handle_events(e);
+            }
+            else if (state == Estado::TOCA_RESPONDER) {
+                botonSi.handle_events(e);
+                botonNo.handle_events(e);
+                botonSalir.handle_events(e);
+            }
+            else if(state == Estado::TOCA_PASAR) {
+                botonPasar.handle_events(e);
+                botonSalir.handle_events(e);
+            }
+		}
+
+        //Renderizado
+		SDL_RenderClear(renderer);
+		SDL_RenderCopy(renderer, imgFondo, NULL, &rect);
+        if (state == Estado::TOCA_ESCRIBIR) {
+            botonResolver.show();
+            botonSalir.show();
+        }
+        else if (state == Estado::TOCA_RESPONDER) {
+            botonSi.show();
+            botonNo.show();
+            botonSalir.show();
+        }
+        else if(state == Estado::TOCA_PASAR) {
+            botonPasar.show();
+            botonSalir.show();
+        }
+		SDL_RenderPresent(renderer);
+	}
+	
+    //Destruimos todo al cerrar
+    SDL_DestroyTexture(imgFondo);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    std::cout << "babai\n";
 }

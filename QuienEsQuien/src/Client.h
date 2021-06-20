@@ -38,6 +38,8 @@ public:
     //Rutina del thread de Red. Recibe datos de la red y los "renderiza" en STDOUT
     void net_thread();
 
+    void sdl_thread();
+
     void closeClient() { close(socket.getSD()); }
 
 private:

@@ -7,10 +7,12 @@ void beServer(char **argv) {
     Server es(argv[1], argv[2], argv[3]);
 
     std::thread input_thread([&es](){ es.input_thread(); });
+    std::thread do_men_thread([&es](){ es.do_messages(); });
 
-    es.do_messages();
+    es.sdl_thread();
 
     input_thread.join();
+    do_men_thread.join();
 
     std::cout << "Servidor cerrado\n";
     es.closeServer();
@@ -20,12 +22,14 @@ void beClient(char **argv) {
     Client ec(argv[1], argv[2], argv[3]);
 
     std::thread net_thread([&ec](){ ec.net_thread(); });
+    std::thread input_thread([&ec](){ ec.input_thread(); });
 
     ec.login();
 
-    ec.input_thread();
+    ec.sdl_thread();
 
     net_thread.join();
+    input_thread.join();
 
     std::cout << "Cliente cerrado\n";
     ec.closeClient();

@@ -45,9 +45,9 @@ int main (int argc, char* argv[])
     rect.w = w/2; rect.h = h/2; 
 
 	//Crear botones
-    Button botonNormal(0, 0, 100, 100, renderer,
+    Button botonNormal(0, 0, 100, 100, -1, renderer,
         "../media/cara0.png", "../media/cara1.png", "../media/cara2.png");
-    ButtonPermanent botonPermanente(SCREEN_SIZE_X - 100, 0, 100, 100, renderer,
+    ButtonPermanent botonPermanente(SCREEN_SIZE_X - 200, 0, 100, 100, -1, renderer,
         "../media/cara3.png", "../media/cara4.png", "../media/cara5.png");
 
 	//Bucle principal

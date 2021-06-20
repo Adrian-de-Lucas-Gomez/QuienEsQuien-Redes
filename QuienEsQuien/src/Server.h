@@ -27,6 +27,8 @@ public:
 
     void input_thread();
 
+    void sdl_thread();
+
     void closeServer() { close(socket.getSD()); }
 
 private:
