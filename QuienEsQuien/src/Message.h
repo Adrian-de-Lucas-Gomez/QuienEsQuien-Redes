@@ -14,7 +14,9 @@
  *  Mensaje del protocolo de la aplicación de Chat
  *
  *  +-------------------+
- *  | Tipo: uint8_t     | 0 (login), 1 (mensaje), 2 (logout)
+ *  | Tipo: uint8_t     | 0 (NUEVAPARTIDA), 1 (SALIR), 2 (PREGUNTAR), 3(RESPONDER), 4(PASAR), 5 (INICIO), 6 (FIN_GANAS), 7 (FIN_PIERDES)
+ *  +-------------------+
+ *  | IDface: int       | Número que indica una cara en el juego 
  *  +-------------------+
  *  | Nick: char[8]     | Nick incluido el char terminación de cadena '\0'
  *  +-------------------+
@@ -34,9 +36,6 @@ public:
     {
         NUEVAPARTIDA = 0, //Se une un jugador
         SALIR  = 1, //Cerrar la conexión (volver al menú)
-
-        //Mensajes exclusivos del QuienEsQuien:
-
         PREGUNTAR = 2,  //Manda mensaje para preguntar sobre el personaje enemigo
         RESPONDER = 3,  //SI o NO
         PASAR = 4,      //Acabar el turno
