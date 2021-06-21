@@ -250,8 +250,17 @@ void Server::sdl_thread()
     botonPreguntar = new Button(SCREEN_SIZE_X - 150, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
         "../media/botonPregunta.png", "../media/botonPregunta2.png");
         
-    // ButtonPermanent botonPermanente(SCREEN_SIZE_X - 200, 0, 100, 100, -1, renderer,
-    //     "../media/cara3.png", "../media/cara4.png", "../media/cara5.png");
+    //Crear botones caras
+    botonCaras.reserve(18);
+    for (int i = 0; i < botonCaras.capacity(); ++i) {
+        std::string a = "../media/cara" + std::to_string(i) + ".png";
+        std::string b = "../media/cara" + std::to_string(i) + "I.png";
+        std::string c = "../media/cara" + std::to_string(i) + "D.png";
+
+        ButtonPermanent* aux = new ButtonPermanent(20 + 50*i, 20 + 50*(i/6), 50, 50, i, renderer,
+            a.c_str(), b.c_str(), c.c_str());
+        botonCaras.push_back(aux);
+    }
 
 	//Bucle principal
 	while (inGame) {
@@ -295,6 +304,11 @@ void Server::sdl_thread()
         else if (state == Estado::TOCA_PASAR) {
             botonPasar->show();
             botonSalir->show();
+        }
+
+        //Las caras se muestran siempre
+        for(int i = 0; i < botonCaras.capacity(); ++i){
+            botonCaras[i]->show();
         }
 
 		SDL_RenderPresent(renderer);

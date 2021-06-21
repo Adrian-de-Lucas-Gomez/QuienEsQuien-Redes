@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include <vector>
 
 #include "ButtonPermanent.h"
 
@@ -12,7 +13,16 @@ SDL_Renderer* renderer = NULL;
 
 //Imagen
 SDL_Texture* imgFondo = NULL;
-int w, h; // w y h de la imagen
+SDL_Texture* imgCara = NULL;
+
+Button* botonSalir;     bool salir = false;
+Button* botonSi;        bool si = false;
+Button* botonNo;        bool no = false;
+Button* botonPasar;     bool pasar = false;
+Button* botonResolver;  bool resolver = false;
+Button* botonPreguntar; bool preguntar = false;
+
+std::vector<ButtonPermanent*> botonCaras;
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -21,59 +31,115 @@ int w, h; // w y h de la imagen
 
 int main (int argc, char* argv[])
 {
+    SDL_Window* window = NULL;
+    SDL_Texture* imgFondo = NULL;
+    int w, h; // w y h de la imagen
+
     //Inicializar SDL
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-    {
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         fprintf(stderr, "SDL could not initialize\n");
         return -1;
     }
 
     //Crear la ventana
-    window = SDL_CreateWindow("¿Quién es quién?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_SIZE_X, SCREEN_SIZE_Y, SDL_WINDOW_SHOWN);
-    if (!window)
-    {
+    window = SDL_CreateWindow("¿Quién es quién?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        SCREEN_SIZE_X, SCREEN_SIZE_Y, SDL_WINDOW_SHOWN);
+    if (!window) {
         fprintf(stderr, "Error creating window.\n");
         return -1;
     }
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    //Crear imagen
-    imgFondo = IMG_LoadTexture(renderer, "../media/prueba.jpg");
-	SDL_QueryTexture(imgFondo, NULL, NULL, &w, &h);
-	SDL_Rect rect;
-    rect.x = 0; rect.y = 0;
-    rect.w = w/2; rect.h = h/2; 
+    //Crear imagenes
+    imgFondo = IMG_LoadTexture(renderer, "../media/fondo.png");
+	SDL_Rect rectFondo;
+    rectFondo.x = 0; rectFondo.y = 0;
+    rectFondo.w = SCREEN_SIZE_X; rectFondo.h = SCREEN_SIZE_Y;
+
+    imgCara = IMG_LoadTexture(renderer, "../media/cara8.png");
+	SDL_Rect rectCara;
+    rectCara.x = SCREEN_SIZE_X/2 - 130/2; rectCara.y = SCREEN_SIZE_Y - 170;
+    rectCara.w = 130; rectCara.h = 130; 
 
 	//Crear botones
-    Button botonNormal(0, 0, 100, 100, -1, renderer,
-        "../media/cara0.png", "../media/cara1.png", "../media/cara2.png");
-    ButtonPermanent botonPermanente(SCREEN_SIZE_X - 200, 0, 100, 100, -1, renderer,
-        "../media/cara3.png", "../media/cara4.png", "../media/cara5.png");
+    botonSalir = new Button(30, SCREEN_SIZE_Y - 70, 40, 40, -1, renderer,
+        "../media/botonSalir.png", "../media/botonSalir2.png");
+    botonResolver = new Button(505, SCREEN_SIZE_Y - 150, 160, 80, -1, renderer,
+        "../media/botonResolver.png", "../media/botonResolver2.png");
+    botonPreguntar = new Button(135, SCREEN_SIZE_Y - 150, 160, 80, -1, renderer,
+        "../media/botonPregunta.png", "../media/botonPregunta2.png");
+    botonSi = new Button(SCREEN_SIZE_X - 240, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+        "../media/botonSi.png", "../media/botonSi2.png");
+    botonNo = new Button(SCREEN_SIZE_X - 120, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+        "../media/botonNo.png", "../media/botonNo2.png");
+    botonPasar = new Button(SCREEN_SIZE_X - 150, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+        "../media/botonPasar.png", "../media/botonPasar2.png");
+        
+    //Crear botones caras
+    botonCaras.reserve(18);
+    for (int i = 0; i < botonCaras.capacity(); ++i) {
+        std::string a = "../media/cara" + std::to_string(i) + ".png";
+        std::string b = "../media/cara" + std::to_string(i) + "I.png";
+        std::string c = "../media/cara" + std::to_string(i) + "D.png";
+
+        int x = 22 + 117*(i%6); int y = 22 + 117*(i/6);
+
+        ButtonPermanent* aux = new ButtonPermanent(x + 10*(i%6), y + 10*(i/6), 117, 117, i, renderer,
+            a.c_str(), b.c_str(), c.c_str());
+        botonCaras.push_back(aux);
+    }
 
 	//Bucle principal
 	while (true) {
 
 		SDL_Event e;
 		if (SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT) {
-				break;
-            }
-			else if (e.type == SDL_KEYUP && e.key.keysym.sym == SDLK_ESCAPE) {
-				break;
-            }
+            if (e.type == SDL_QUIT)
+                break;
+            else if (e.type == SDL_KEYUP && e.key.keysym.sym == SDLK_ESCAPE)
+                break;
 
-            botonNormal.handle_events(e);
-            botonPermanente.handle_events(e);
-		}
+            // for (int i = 0; i < botonCaras.capacity(); ++i) {
+            //     botonCaras[i]->handle_events(e);
+            // }
+        }
 
+        //Renderizado
 		SDL_RenderClear(renderer);
-		SDL_RenderCopy(renderer, imgFondo, NULL, &rect);
-        botonNormal.show();
-        botonPermanente.show();
+		SDL_RenderCopy(renderer, imgFondo, NULL, &rectFondo);
+		SDL_RenderCopy(renderer, imgCara, NULL, &rectCara);
+
+        botonPreguntar->show();
+        botonResolver->show();
+        // botonSalir->show();
+        // botonSi->show();
+        // botonNo->show();
+        botonSalir->show();
+        // botonPasar->show();
+        // botonSalir->show();
+
+        //Las caras se muestran siempre
+        for(int i = 0; i < botonCaras.capacity(); ++i){
+            botonCaras[i]->show();
+        }
+
 		SDL_RenderPresent(renderer);
 	}
 	
     //Destruimos todo al cerrar
+    // delete botonNo;
+    // delete botonSi;
+    // delete botonPasar;
+    // delete botonResolver;
+    // delete botonSalir;
+    // delete botonPreguntar;
+
+    for (int i = 0; i < botonCaras.capacity(); ++i) {
+        delete botonCaras[i];
+        botonCaras[i] = nullptr;
+    }
+    botonCaras.clear();
+
     SDL_DestroyTexture(imgFondo);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
