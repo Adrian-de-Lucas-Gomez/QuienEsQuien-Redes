@@ -15,6 +15,8 @@ SDL_Renderer* renderer = NULL;
 SDL_Texture* imgFondo = NULL;
 SDL_Texture* imgCara = NULL;
 SDL_Texture* imgTexto = NULL;
+SDL_Texture* imgVictoria = NULL;
+SDL_Texture* imgPerder = NULL;
 
 Button* botonSalir;     bool salir = false;
 Button* botonSi;        bool si = false;
@@ -56,14 +58,22 @@ int main (int argc, char* argv[])
 	SDL_Rect rectFondo;
     rectFondo.x = 0; rectFondo.y = 0;
     rectFondo.w = SCREEN_SIZE_X; rectFondo.h = SCREEN_SIZE_Y;
+
     imgCara = IMG_LoadTexture(renderer, "../media/cara8.png");
 	SDL_Rect rectCara;
     rectCara.x = SCREEN_SIZE_X/2 - 130/2; rectCara.y = SCREEN_SIZE_Y - 170;
     rectCara.w = 130; rectCara.h = 130; 
+
     imgTexto = IMG_LoadTexture(renderer, "../media/prueba.jpg");
 	SDL_Rect rectTexto;
     rectTexto.x = 30; rectTexto.y = 450;
     rectTexto.w = 300; rectTexto.h = 70; 
+
+    imgVictoria = IMG_LoadTexture(renderer, "../media/prueba.jpg");
+    imgPerder = IMG_LoadTexture(renderer, "../media/prueba.jpg");
+	SDL_Rect rectFin;
+    rectFin.x = 100; rectFin.y = 200;
+    rectFin.w = 600; rectFin.h = 200; 
 
 	//Crear botones
     botonSalir = new Button(30, SCREEN_SIZE_Y - 70, 40, 40, -1, renderer,
@@ -111,20 +121,22 @@ int main (int argc, char* argv[])
         //Renderizado
 		SDL_RenderClear(renderer);
 		SDL_RenderCopy(renderer, imgFondo, NULL, &rectFondo);
-		SDL_RenderCopy(renderer, imgCara, NULL, &rectCara);
-		SDL_RenderCopy(renderer, imgTexto, NULL, &rectTexto);
+		//SDL_RenderCopy(renderer, imgCara, NULL, &rectCara);
+		//SDL_RenderCopy(renderer, imgTexto, NULL, &rectTexto);
+
+		SDL_RenderCopy(renderer, imgVictoria, NULL, &rectFin);
 
         //botonPreguntar->show();
         //botonResolver->show();
         //botonSi->show();
         //botonNo->show();
-        botonSalir->show();
-        botonPasar->show();
+        //botonSalir->show();
+        //botonPasar->show();
 
         //Las caras se muestran siempre
-        for(int i = 0; i < botonCaras.capacity(); ++i){
-            botonCaras[i]->show();
-        }
+        // for(int i = 0; i < botonCaras.capacity(); ++i){
+        //     botonCaras[i]->show();
+        // }
 
 		SDL_RenderPresent(renderer);
 	}
@@ -144,6 +156,11 @@ int main (int argc, char* argv[])
     botonCaras.clear();
 
     SDL_DestroyTexture(imgFondo);
+    SDL_DestroyTexture(imgCara);
+    SDL_DestroyTexture(imgTexto);
+    SDL_DestroyTexture(imgVictoria);
+    SDL_DestroyTexture(imgPerder);
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     std::cout << "babai\n";
