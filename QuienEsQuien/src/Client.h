@@ -19,7 +19,9 @@ public:
         TOCA_ESCRIBIR = 1,
         TOCA_RESPONDER = 2,
         TOCA_PASAR = 3,
-        TOCA_ESPERAR = 4
+        TOCA_ESPERAR = 4,
+        TOCA_CELEBRAR = 5,
+        TOCA_LLORAR = 6
     };
 
     Client(const char * s, const char * p, const char * n) :

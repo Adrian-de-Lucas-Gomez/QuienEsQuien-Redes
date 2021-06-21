@@ -19,7 +19,9 @@ public:
         TOCA_ESCRIBIR = 1,
         TOCA_RESPONDER = 2,
         TOCA_PASAR = 3,
-        TOCA_ESPERAR = 4
+        TOCA_ESPERAR = 4,
+        TOCA_CELEBRAR = 5,
+        TOCA_LLORAR = 6
     };
 
     Server(const char * s, const char * p, const char * n);
@@ -37,7 +39,7 @@ public:
 private:
     int waitForClient();
     void chooseFaces();
-    void resolve(int win);
+    void resolve(bool win);
     void sendMessage(uint8_t messageType, std::string message = "");
 
     int client_sd;

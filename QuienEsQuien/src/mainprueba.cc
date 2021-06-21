@@ -64,16 +64,16 @@ int main (int argc, char* argv[])
     rectCara.x = SCREEN_SIZE_X/2 - 130/2; rectCara.y = SCREEN_SIZE_Y - 170;
     rectCara.w = 130; rectCara.h = 130; 
 
-    imgTexto = IMG_LoadTexture(renderer, "../media/prueba.jpg");
+    imgTexto = IMG_LoadTexture(renderer, "../media/textoConsola.png");
 	SDL_Rect rectTexto;
     rectTexto.x = 30; rectTexto.y = 450;
-    rectTexto.w = 300; rectTexto.h = 70; 
+    rectTexto.w = 270; rectTexto.h = 50; 
 
-    imgVictoria = IMG_LoadTexture(renderer, "../media/prueba.jpg");
-    imgPerder = IMG_LoadTexture(renderer, "../media/prueba.jpg");
+    imgVictoria = IMG_LoadTexture(renderer, "../media/textoGanar.png");
+    imgPerder = IMG_LoadTexture(renderer, "../media/textoPerder.png");
 	SDL_Rect rectFin;
     rectFin.x = 100; rectFin.y = 200;
-    rectFin.w = 600; rectFin.h = 200; 
+    rectFin.w = 600; rectFin.h = 150; 
 
 	//Crear botones
     botonSalir = new Button(30, SCREEN_SIZE_Y - 70, 40, 40, -1, renderer,
@@ -122,7 +122,7 @@ int main (int argc, char* argv[])
 		SDL_RenderClear(renderer);
 		SDL_RenderCopy(renderer, imgFondo, NULL, &rectFondo);
 		//SDL_RenderCopy(renderer, imgCara, NULL, &rectCara);
-		//SDL_RenderCopy(renderer, imgTexto, NULL, &rectTexto);
+		SDL_RenderCopy(renderer, imgTexto, NULL, &rectTexto);
 
 		SDL_RenderCopy(renderer, imgVictoria, NULL, &rectFin);
 
