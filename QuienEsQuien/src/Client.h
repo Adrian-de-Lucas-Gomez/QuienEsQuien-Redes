@@ -67,5 +67,8 @@ private:
     Button* botonPasar;     bool pasar = false;
     Button* botonResolver;  bool resolver = false;
     Button* botonPreguntar; bool preguntar = false;
+
+    std::vector<ButtonPermanent*> botonCaras;
+
     int caraSeleccionada;
 };

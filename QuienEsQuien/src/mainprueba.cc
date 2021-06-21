@@ -14,6 +14,7 @@ SDL_Renderer* renderer = NULL;
 //Imagen
 SDL_Texture* imgFondo = NULL;
 SDL_Texture* imgCara = NULL;
+SDL_Texture* imgTexto = NULL;
 
 Button* botonSalir;     bool salir = false;
 Button* botonSi;        bool si = false;
@@ -55,11 +56,14 @@ int main (int argc, char* argv[])
 	SDL_Rect rectFondo;
     rectFondo.x = 0; rectFondo.y = 0;
     rectFondo.w = SCREEN_SIZE_X; rectFondo.h = SCREEN_SIZE_Y;
-
     imgCara = IMG_LoadTexture(renderer, "../media/cara8.png");
 	SDL_Rect rectCara;
     rectCara.x = SCREEN_SIZE_X/2 - 130/2; rectCara.y = SCREEN_SIZE_Y - 170;
     rectCara.w = 130; rectCara.h = 130; 
+    imgTexto = IMG_LoadTexture(renderer, "../media/prueba.jpg");
+	SDL_Rect rectTexto;
+    rectTexto.x = 30; rectTexto.y = 450;
+    rectTexto.w = 300; rectTexto.h = 70; 
 
 	//Crear botones
     botonSalir = new Button(30, SCREEN_SIZE_Y - 70, 40, 40, -1, renderer,
@@ -68,11 +72,11 @@ int main (int argc, char* argv[])
         "../media/botonResolver.png", "../media/botonResolver2.png");
     botonPreguntar = new Button(135, SCREEN_SIZE_Y - 150, 160, 80, -1, renderer,
         "../media/botonPregunta.png", "../media/botonPregunta2.png");
-    botonSi = new Button(SCREEN_SIZE_X - 240, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+    botonSi = new Button(510, SCREEN_SIZE_Y - 150, 80, 80, -1, renderer,
         "../media/botonSi.png", "../media/botonSi2.png");
-    botonNo = new Button(SCREEN_SIZE_X - 120, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+    botonNo = new Button(635, SCREEN_SIZE_Y - 150, 80, 80, -1, renderer,
         "../media/botonNo.png", "../media/botonNo2.png");
-    botonPasar = new Button(SCREEN_SIZE_X - 150, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+    botonPasar = new Button(505, SCREEN_SIZE_Y - 150, 160, 80, -1, renderer,
         "../media/botonPasar.png", "../media/botonPasar2.png");
         
     //Crear botones caras
@@ -108,15 +112,14 @@ int main (int argc, char* argv[])
 		SDL_RenderClear(renderer);
 		SDL_RenderCopy(renderer, imgFondo, NULL, &rectFondo);
 		SDL_RenderCopy(renderer, imgCara, NULL, &rectCara);
+		SDL_RenderCopy(renderer, imgTexto, NULL, &rectTexto);
 
-        botonPreguntar->show();
-        botonResolver->show();
-        // botonSalir->show();
-        // botonSi->show();
-        // botonNo->show();
+        //botonPreguntar->show();
+        //botonResolver->show();
+        //botonSi->show();
+        //botonNo->show();
         botonSalir->show();
-        // botonPasar->show();
-        // botonSalir->show();
+        botonPasar->show();
 
         //Las caras se muestran siempre
         for(int i = 0; i < botonCaras.capacity(); ++i){
@@ -127,12 +130,12 @@ int main (int argc, char* argv[])
 	}
 	
     //Destruimos todo al cerrar
-    // delete botonNo;
-    // delete botonSi;
-    // delete botonPasar;
-    // delete botonResolver;
-    // delete botonSalir;
-    // delete botonPreguntar;
+    delete botonNo;
+    delete botonSi;
+    delete botonPasar;
+    delete botonResolver;
+    delete botonSalir;
+    delete botonPreguntar;
 
     for (int i = 0; i < botonCaras.capacity(); ++i) {
         delete botonCaras[i];

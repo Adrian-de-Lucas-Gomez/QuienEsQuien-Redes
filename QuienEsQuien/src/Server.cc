@@ -212,7 +212,8 @@ void Server::sdl_thread()
 {
     SDL_Window* window = NULL;
     SDL_Texture* imgFondo = NULL;
-    int w, h; // w y h de la imagen
+    SDL_Texture* imgCara = NULL;
+    SDL_Texture* imgTexto = NULL;
 
     //Inicializar SDL
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -221,7 +222,8 @@ void Server::sdl_thread()
     }
 
     //Crear la ventana
-    window = SDL_CreateWindow("¿Quién es quién?", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    std::string windowName = "¿Quién es quién? : " + nick;
+    window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         SCREEN_SIZE_X, SCREEN_SIZE_Y, SDL_WINDOW_SHOWN);
     if (!window) {
         fprintf(stderr, "Error creating window.\n");
@@ -229,26 +231,35 @@ void Server::sdl_thread()
     }
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    //Crear imagen
-    imgFondo = IMG_LoadTexture(renderer, "../media/prueba.jpg");
-	SDL_QueryTexture(imgFondo, NULL, NULL, &w, &h);
-	SDL_Rect rect;
-    rect.x = 0; rect.y = 0;
-    rect.w = w/2; rect.h = h/2; 
+    //+++++++++++++++++++++++++Recursos++++++++++++++++++++++++++++++++
+
+    //Crear imagenes
+    imgFondo = IMG_LoadTexture(renderer, "../media/fondo.png");
+	SDL_Rect rectFondo;
+    rectFondo.x = 0; rectFondo.y = 0;
+    rectFondo.w = SCREEN_SIZE_X; rectFondo.h = SCREEN_SIZE_Y;
+    imgCara = IMG_LoadTexture(renderer, "../media/cara8.png");
+	SDL_Rect rectCara;
+    rectCara.x = SCREEN_SIZE_X/2 - 130/2; rectCara.y = SCREEN_SIZE_Y - 170;
+    rectCara.w = 130; rectCara.h = 130; 
+    imgTexto = IMG_LoadTexture(renderer, "../media/prueba.jpg");
+	SDL_Rect rectTexto;
+    rectTexto.x = 30; rectTexto.y = 450;
+    rectTexto.w = 300; rectTexto.h = 70; 
 
 	//Crear botones
-    botonSalir = new Button(20, SCREEN_SIZE_Y - 150, 20, 20, -1, renderer,
+    botonSalir = new Button(30, SCREEN_SIZE_Y - 70, 40, 40, -1, renderer,
         "../media/botonSalir.png", "../media/botonSalir2.png");
-    botonSi = new Button(SCREEN_SIZE_X - 240, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
-        "../media/botonSi.png", "../media/botonSi2.png");
-    botonNo = new Button(SCREEN_SIZE_X - 120, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
-        "../media/botonNo.png", "../media/botonNo2.png");
-    botonPasar = new Button(SCREEN_SIZE_X - 150, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
-        "../media/botonPasar.png", "../media/botonPasar2.png");
-    botonResolver = new Button(SCREEN_SIZE_X - 150, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+    botonResolver = new Button(505, SCREEN_SIZE_Y - 150, 160, 80, -1, renderer,
         "../media/botonResolver.png", "../media/botonResolver2.png");
-    botonPreguntar = new Button(SCREEN_SIZE_X - 150, SCREEN_SIZE_Y - 120, 50, 50, -1, renderer,
+    botonPreguntar = new Button(135, SCREEN_SIZE_Y - 150, 160, 80, -1, renderer,
         "../media/botonPregunta.png", "../media/botonPregunta2.png");
+    botonSi = new Button(510, SCREEN_SIZE_Y - 150, 80, 80, -1, renderer,
+        "../media/botonSi.png", "../media/botonSi2.png");
+    botonNo = new Button(635, SCREEN_SIZE_Y - 150, 80, 80, -1, renderer,
+        "../media/botonNo.png", "../media/botonNo2.png");
+    botonPasar = new Button(505, SCREEN_SIZE_Y - 150, 160, 80, -1, renderer,
+        "../media/botonPasar.png", "../media/botonPasar2.png");
         
     //Crear botones caras
     botonCaras.reserve(18);
@@ -257,10 +268,14 @@ void Server::sdl_thread()
         std::string b = "../media/cara" + std::to_string(i) + "I.png";
         std::string c = "../media/cara" + std::to_string(i) + "D.png";
 
-        ButtonPermanent* aux = new ButtonPermanent(20 + 50*i, 20 + 50*(i/6), 50, 50, i, renderer,
+        int x = 22 + 117*(i%6); int y = 22 + 117*(i/6);
+
+        ButtonPermanent* aux = new ButtonPermanent(x + 10*(i%6), y + 10*(i/6), 117, 117, i, renderer,
             a.c_str(), b.c_str(), c.c_str());
         botonCaras.push_back(aux);
     }
+
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 	//Bucle principal
 	while (inGame) {
@@ -285,18 +300,38 @@ void Server::sdl_thread()
             else if(state == Estado::TOCA_PASAR) {
                 pasar = botonPasar->handle_events(e);
             }
+
+            for (int i = 0; i < botonCaras.capacity(); ++i)
+            {
+                if(botonCaras[i]->handle_leftClick(e)) {
+                    if(caraSeleccionada == botonCaras[i]->getID())
+                        caraSeleccionada = -1;
+                    else if(caraSeleccionada == -1)
+                        caraSeleccionada = botonCaras[i]->getID();
+                    else {
+                        botonCaras[caraSeleccionada]->setNormal();
+                        caraSeleccionada = botonCaras[i]->getID();
+                    }
+                }
+                botonCaras[i]->handle_rightClick(e);
+            }
         }
 
         //Renderizado
 		SDL_RenderClear(renderer);
-		SDL_RenderCopy(renderer, imgFondo, NULL, &rect);
+        SDL_RenderCopy(renderer, imgFondo, NULL, &rectFondo);
+		SDL_RenderCopy(renderer, imgCara, NULL, &rectCara);
 
         if (state == Estado::TOCA_DECIDIR) {
             botonPreguntar->show();
             botonResolver->show();
             botonSalir->show();
         }
+        else if (state == Estado::TOCA_ESCRIBIR) {
+            SDL_RenderCopy(renderer, imgTexto, NULL, &rectTexto);
+        }
         else if (state == Estado::TOCA_RESPONDER) {
+            SDL_RenderCopy(renderer, imgTexto, NULL, &rectTexto);
             botonSi->show();
             botonNo->show();
             botonSalir->show();
@@ -314,13 +349,19 @@ void Server::sdl_thread()
 		SDL_RenderPresent(renderer);
 	}
 	
-    //Destruimos todo al cerrar
+    //Destruimos todo al acabar
     delete botonNo;
     delete botonSi;
     delete botonPasar;
     delete botonResolver;
     delete botonSalir;
     delete botonPreguntar;
+
+    for (int i = 0; i < botonCaras.capacity(); ++i) {
+        delete botonCaras[i];
+        botonCaras[i] = nullptr;
+    }
+    botonCaras.clear();
 
     SDL_DestroyTexture(imgFondo);
     SDL_DestroyRenderer(renderer);
